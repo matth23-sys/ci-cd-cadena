@@ -28,7 +28,7 @@ def home():
         </head>
         <body>
             <h1>matth calculator</h1>
-            <p>App corriendo desde Traefik + Docker + CI/CD</p>
+            <p>hola mundo</p>
         </body>
     </html>
     """
