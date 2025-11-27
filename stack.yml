@@ -7,17 +7,27 @@ services:
       replicas: 1
       labels:
         - "traefik.enable=true"
+
+        # Entrypoint HTTP
         - "traefik.http.routers.cadena.entrypoints=http"
-        - "traefik.http.routers.cadena.rule=Host(`tu-dominio.com`)"
+        - "traefik.http.routers.cadena.rule=Host(`cadena.byronrm.com`)"
+
+        # Redirección automática a HTTPS
         - "traefik.http.middlewares.cadena-https-redirect.redirectscheme.scheme=https"
         - "traefik.http.routers.cadena.middlewares=cadena-https-redirect"
+
+        # Entrypoint HTTPS
         - "traefik.http.routers.cadena-secure.entrypoints=https"
-        - "traefik.http.routers.cadena-secure.rule=Host(`tu-dominio.com`)"
+        - "traefik.http.routers.cadena-secure.rule=Host(`cadena.byronrm.com`)"
         - "traefik.http.routers.cadena-secure.tls=true"
         - "traefik.http.routers.cadena-secure.tls.certresolver=http"
-        - "traefik.http.routers.cadena-secure.service=cadena"
-        - "traefik.http.services.cadena.loadbalancer.server.port=1002"
+
+        # Servicio interno apuntando al puerto de Flask (2407)
+        - "traefik.http.services.cadena.loadbalancer.server.port=2407"
+
+        # Uso de la red traefik pública
         - "traefik.docker.network=traefik-public"
+
     networks:
       - traefik-public
 
