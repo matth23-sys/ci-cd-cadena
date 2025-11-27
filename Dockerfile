@@ -11,6 +11,7 @@ COPY app.py .
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-EXPOSE 2407
+EXPOSE 1002
+
 
 CMD ["python", "app.py"]
