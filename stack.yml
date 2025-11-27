@@ -23,7 +23,7 @@ services:
         - "traefik.http.routers.cadena-secure.tls.certresolver=http"
 
         # Servicio interno apuntando al puerto de Flask (2407)
-        - "traefik.http.services.cadena.loadbalancer.server.port=2407"
+        - "traefik.http.services.cadena.loadbalancer.server.port=1002"
 
         # Uso de la red traefik pública
         - "traefik.docker.network=traefik-public"
