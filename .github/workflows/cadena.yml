@@ -1,0 +1,81 @@
+name: cadena application
+
+on:
+  push:
+    branches: 
+      - cadena
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v6
+      with:
+        push: true
+        tags: ghcr.io/matth23-sys/cadena-app:1.0.5
+
+    - name: Test connection SSH
+      run: |
+        echo "Host: ${{ secrets.VPS_HOST }}"
+        echo "User: ${{ secrets.VPS_USER }}"
+        nc -zv ${{ secrets.VPS_HOST }} 22 || echo "SSH FAIL"
+
+    - name: SSH Connected OK?
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        password: ${{ secrets.VPS_PASS }}
+        port: 22
+        script: |
+          echo "SSH OK"
+          hostname
+          whoami
+
+    - name: Copy stack.yml to VPS
+      uses: appleboy/scp-action@v1
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        password: ${{ secrets.VPS_PASS }}
+        port: 22
+        source: "stack.yml"
+        target: "/home/${{ secrets.VPS_USER }}/cadena"
+
+    - name: Deploy stack
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        password: ${{ secrets.VPS_PASS }}
+        port: 22
+        script: |
+          cd ~/cadena
+          docker pull ghcr.io/matth23-sys/cadena-app:1.0.5
+          docker stack rm cadena || true
+          sleep 20
+          docker stack deploy --with-registry-auth -c stack.yml cadena
+          docker ps
